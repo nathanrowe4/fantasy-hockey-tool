@@ -1,1 +1,1 @@
-
+require('./db/mongoose');
