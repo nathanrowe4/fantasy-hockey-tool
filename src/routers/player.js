@@ -11,7 +11,7 @@ router.get('/player/:id', async (req, res) => {
       throw new Error()
     }
 
-    res.send(player.Player)
+    res.send(player)
   } catch(error) {
     res.status(404).send()
   }
