@@ -3,7 +3,7 @@ const Player = require('../models/player')
 
 const router = express.Router()
 
-router.get('/player/:id', async (req, res) => {
+router.get('/players/:id', async (req, res) => {
   try {
     const player = await Player.findById(req.params.id)
 
@@ -12,6 +12,20 @@ router.get('/player/:id', async (req, res) => {
     }
 
     res.send(player)
+  } catch(error) {
+    res.status(404).send()
+  }
+})
+
+router.get('players/:category', async (req, res) => {
+  try {
+    const players = await Player.findMany({}).sort({ req.params.category: -1 }).limit(10)
+
+    if(!players) {
+      throw new Error()
+    }
+
+    res.send(players)
   } catch(error) {
     res.status(404).send()
   }
