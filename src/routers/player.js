@@ -17,30 +17,15 @@ router.get('/players/:id', async (req, res) => {
   }
 })
 
-router.get('players/:category', async (req, res) => {
+router.get('/players', async (req, res) => {
   try {
-    const category = req.params.category.toString()
-    const players = await Player.findMany({}).sort({ category: -1 }).limit(10)
+    const player = await Player.findOne( req.body )
 
-    if(!players) {
+    if(!player) {
       throw new Error()
     }
 
-    res.send(players)
-  } catch(error) {
-    res.status(404).send()
-  }
-})
-
-router.get('players/:team', async (req, res) => {
-  try {
-    const players = await Player.findMany({ Owner: req.params.team.toString() })
-
-    if(!players) {
-      throw new Error()
-    }
-
-    res.send(players)
+    res.send(player)
   } catch(error) {
     res.status(404).send()
   }
