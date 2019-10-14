@@ -22,6 +22,7 @@ router.get('/team/addPlayer', async (req, res) => {
 
     const team = await Team.findOneAndUpdate({ _id: teamId },
       {$push: { Players: newPlayerId }}, {useFindAndModify: false})
+
     if(!team) {
       throw new Error()
     }

@@ -7,7 +7,7 @@ const playerSchema = new mongoose.Schema({
     trim: true
   },
   Team: {
-    type: type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Team'
   },
   G: {
