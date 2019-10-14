@@ -6,10 +6,9 @@ const playerSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  Owner: {
-    type: String,
-    required: true,
-    trim: true
+  Team: {
+    type: type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
   },
   G: {
     type: Number,
