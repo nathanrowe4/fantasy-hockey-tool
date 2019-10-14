@@ -10,7 +10,8 @@ const teamSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Player'
   }]
-}
+}, {
+  collection: 'teams'
 })
 
 const Team = mongoose.model('Team', teamSchema)
