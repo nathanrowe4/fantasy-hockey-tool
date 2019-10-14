@@ -12,11 +12,13 @@ const playerSchema = new mongoose.Schema({
   },
   G: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   },
   A: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   },
   PLUSMINUS: {
     type: Number,
@@ -24,23 +26,28 @@ const playerSchema = new mongoose.Schema({
   },
   PIM: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   },
   SOG: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   },
   PPP: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   },
   HITS: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   },
   FOW: {
     type: Number,
-    required: true
+    required: true,
+    minimum: 0
   }
 }, {
   collection: 'dobber'
