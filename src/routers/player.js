@@ -31,4 +31,18 @@ router.get('/players', async (req, res) => {
   }
 })
 
+router.get('/players/:category', async (req, res) => {
+  try {
+    const players = await Player.findMany({}).limit(10)
+
+    if(!players) {
+      throw new Error()
+    }
+
+    res.send(players)
+  } catch(error) {
+    res.status(404).send()
+  }
+})
+
 module.exports = router
