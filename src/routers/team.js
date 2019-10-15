@@ -51,4 +51,21 @@ router.put('/team/removePlayer', async (req, res) => {
   }
 })
 
+router.put('/team/changeName', async (req, res) => {
+  try {
+    const teamId = mongoose.Types.ObjectId(req.body.teamId)
+
+    const team = await Team.findOneAndUpdate({ _id: teamId },
+      {$set: { Name: req.body.newTeamName }}, {useFindAndModify: false})
+
+    if(!team) {
+      throw new Error()
+    }
+
+    res.send(team)
+  } catch(error) {
+    res.status(404).send(error)
+  }
+})
+
 module.exports = router
