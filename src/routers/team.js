@@ -15,7 +15,7 @@ router.post('/team', async (req, res) => {
   }
 })
 
-router.get('/team/addPlayer', async (req, res) => {
+router.put('/team/addPlayer', async (req, res) => {
   try {
     const teamId = mongoose.Types.ObjectId(req.body.teamId)
     const newPlayerId = mongoose.Types.ObjectId(req.body.playerId)
