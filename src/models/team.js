@@ -9,7 +9,12 @@ const teamSchema = new mongoose.Schema({
   Players: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Player'
-  }]
+  }],
+  Name: {
+    type: String,
+    required: true,
+    trim: true
+  }
 }, {
   collection: 'teams'
 })
