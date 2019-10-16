@@ -4,6 +4,7 @@ const Team = require('../models/team')
 
 const router = express.Router()
 
+// GET team by parameter
 router.post('/team', async (req, res) => {
   const team = new Team(req.body)
 
@@ -15,6 +16,7 @@ router.post('/team', async (req, res) => {
   }
 })
 
+// PUT new player on team
 router.put('/team/addPlayer', async (req, res) => {
   try {
     const teamId = mongoose.Types.ObjectId(req.body.teamId)
