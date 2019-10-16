@@ -33,8 +33,9 @@ router.get('/players', async (req, res) => {
 
 router.get('/players/categoryLeaders', async (req, res) => {
   try {
-    const players = await Player.findMany({})
-      .sort([req.query.category, -1])
+    const category = req.query.category.toString()
+    const players = await Player.find({})
+      .sort({category: -1})
       .limit(req.query.numPlayers)
 
     if(!players) {
