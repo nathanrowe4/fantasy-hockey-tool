@@ -4,6 +4,7 @@ const Team = require('../models/team')
 
 const router = express.Router()
 
+// GET: Get team by parameter in body
 router.post('/team', async (req, res) => {
   const team = new Team(req.body)
 
@@ -15,6 +16,7 @@ router.post('/team', async (req, res) => {
   }
 })
 
+// PUT: Add new player to team
 router.put('/team/addPlayer', async (req, res) => {
   try {
     const teamId = mongoose.Types.ObjectId(req.body.teamId)
@@ -33,6 +35,7 @@ router.put('/team/addPlayer', async (req, res) => {
   }
 })
 
+// PUT: Remove player from team by id
 router.put('/team/removePlayer', async (req, res) => {
   try {
     const teamId = mongoose.Types.ObjectId(req.body.teamId)
@@ -51,6 +54,7 @@ router.put('/team/removePlayer', async (req, res) => {
   }
 })
 
+// PUT: Change team name by id
 router.put('/team/changeName', async (req, res) => {
   try {
     const teamId = mongoose.Types.ObjectId(req.body.teamId)
