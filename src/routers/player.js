@@ -1,7 +1,9 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const Player = require('../models/player')
 
 const router = express.Router()
+var jsonParser = bodyParser.json()
 
 // GET helper function
 async function getPlayerFromDatabase(query) {
@@ -30,7 +32,7 @@ function getDifference(players) {
 }
 
 // GET: Get player by id
-router.get('/players/:id', async (req, res) => {
+router.get('/players/:id', jsonParser, async (req, res) => {
   try {
     const player = await getPlayerFromDatabase(req.params)
 
@@ -45,7 +47,7 @@ router.get('/players/:id', async (req, res) => {
 })
 
 // GET: Get player by parameter in body
-router.get('/players', async (req, res) => {
+router.get('/players', jsonParser, async (req, res) => {
   try {
     const player = await getPlayerFromDatabase(req.body)
 
@@ -60,7 +62,7 @@ router.get('/players', async (req, res) => {
 })
 
 // GET: Compare players by parameter in body
-router.get('/comparePlayers', async (req, res) => {
+router.get('/comparePlayers', jsonParser, async (req, res) => {
   try {
     const keys = Object.keys(req.body)
 
