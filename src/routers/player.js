@@ -62,22 +62,24 @@ router.get('/players', jsonParser, async (req, res) => {
 })
 
 // GET: Get top players for category
-router.get('/playerLeaders', async (req, res) => {
+router.get('/playerLeaders', jsonParser, async (req, res) => {
   try {
-    const category = req.query.category.toString()
-    const players = await Player.find({})
-      .sort({category: -1})
-      .limit(req.query.numPlayers)
+    var sortQuery = {}
+    sortQuery[req.body.category] = -1
+
+    const players = await Player.find({}).
+      limit(req.body.numPlayers).
+      sort(sortQuery)
 
     if(!players) {
       throw new Error()
     }
 
-      res.send(players)
-    } catch(error) {
-      res.status(404).send()
-    }
-  })
+    res.send(players)
+  } catch(error) {
+    res.status(404).send()
+  }
+})
 
 // GET: Compare players by parameter in body
 router.get('/comparePlayers', jsonParser, async (req, res) => {
