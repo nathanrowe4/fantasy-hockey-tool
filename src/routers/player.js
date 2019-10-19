@@ -89,4 +89,26 @@ router.get('/comparePlayers', jsonParser, async (req, res) => {
   }
 })
 
+// GET: Get players that meet minimum stat requirements
+router.get('/playerFilter', jsonParser, async (req, res) => {
+  try {
+    var query = {}
+    var categories = Object.keys(req.body)
+
+    categories.forEach(function (category) {
+      query[category] = {$gt: req.body[category]}
+    })
+
+    const players = await Player.find(query);
+
+    if(!players) {
+      throw new Error()
+    }
+
+    res.send(players)
+  } catch(error) {
+    res.status(404).send()
+  }
+})
+
 module.exports = router
