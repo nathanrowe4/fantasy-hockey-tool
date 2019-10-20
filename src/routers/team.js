@@ -6,7 +6,7 @@ const Team = require('../models/team')
 const router = express.Router()
 var jsonParser = bodyParser.json()
 
-// GET: Get team by parameter in body
+// GET: Create team
 router.post('/team', jsonParser, async (req, res) => {
   const team = new Team(req.body)
 
@@ -15,6 +15,41 @@ router.post('/team', jsonParser, async (req, res) => {
     res.status(201).send(team)
   } catch(error) {
     res.status(500).send(error)
+  }
+})
+
+// GET: Get total team projections by name
+router.get('team/projections', jsonParser, async (req, res) => {
+  try {
+    const team = await Team.findOne({Name: req.query.teamName})
+
+    if(!team) {
+      throw new Error()
+    }
+
+    const teamProjections = {
+      "G": 0,
+      "A": 0,
+      "PLUSMINUS": 0,
+      "PIM": 0,
+      "SOG": 0,
+      "PPP": 0,
+      "HITS": 0,
+      "FOW": 0
+    }
+
+    team.Players.forEach(function (playerId) {
+      var player = Player.findById(playerId)
+
+      var categories = Object.keys(player).filter(function (category) {
+        //check if type is number
+        //add to teamProjections object
+      })
+    })
+
+    res.send(teamProjections)
+  } catch(error) {
+    res.status(404).send()
   }
 })
 
