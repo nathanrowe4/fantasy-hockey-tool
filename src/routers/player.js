@@ -23,10 +23,9 @@ function getDifference(players) {
   const categories = ['G', 'A', 'PIM', 'PLUSMINUS', 'PIM', 'SOG', 'PPP', 'HITS', 'FOW']
   var differenceObj = {}
 
-  for(var count = 0; count < categories.length; count++) {
-    var category = categories[count]
+  categories.forEach(function (category) {
     differenceObj[category] = players[0][category] - players[1][category]
-  }
+  })
 
   return differenceObj
 }
