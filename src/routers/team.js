@@ -19,9 +19,9 @@ router.post('/team', jsonParser, async (req, res) => {
 })
 
 // GET: Get total team projections by name
-router.get('team/projections', jsonParser, async (req, res) => {
+router.get('/team/projections', jsonParser, async (req, res) => {
   try {
-    const team = await Team.findOne({Name: req.query.teamName})
+    const team = await Team.findOne({Name: req.body.teamName})
 
     if(!team) {
       throw new Error()
