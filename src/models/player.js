@@ -53,6 +53,20 @@ const playerSchema = new mongoose.Schema({
   collection: 'dobber'
 })
 
+playerSchema.statics.getStats = (player) => {
+  var playerStats = {}
+  const categories = ["G", "A", "PLUSMINUS", "PIM", "SOG", "PPP", "HITS", "FOW"]
+  var playerJSON = player.toJSON()
+
+  for(var key in playerJSON) {
+    if(playerJSON.hasOwnProperty(key) && categories.includes(key)) {
+      playerStats[key] = playerJSON[key]
+    }
+  }
+
+  return playerStats
+}
+
 const Player = mongoose.model('Player', playerSchema)
 
 module.exports = Player
