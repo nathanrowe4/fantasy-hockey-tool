@@ -6,7 +6,7 @@ const Team = require('../models/team')
 const router = express.Router()
 var jsonParser = bodyParser.json()
 
-// GET: Get team by parameter in body
+// POST: Create team by parameter in body
 router.post('/team', jsonParser, async (req, res) => {
   const team = new Team(req.body)
 
@@ -15,6 +15,21 @@ router.post('/team', jsonParser, async (req, res) => {
     res.status(201).send(team)
   } catch(error) {
     res.status(500).send(error)
+  }
+})
+
+// GET: Get team by parameter in body
+router.get('/team', jsonParser, async (req, res) => {
+  try {
+    const team = await Team.find(req.body)
+
+    if(!team) {
+      throw new Error()
+    }
+
+    res.send(team)
+  } catch (error) {
+    res.status(404).send()
   }
 })
 
