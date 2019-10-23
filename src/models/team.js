@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const autopopulate = require('mongoose-autopopulate')
 
 const teamSchema = new mongoose.Schema({
   Manager: {
@@ -8,7 +9,8 @@ const teamSchema = new mongoose.Schema({
   },
   Players: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Player'
+    ref: 'Player',
+    autopopulate: true
   }],
   Name: {
     type: String,
@@ -18,6 +20,8 @@ const teamSchema = new mongoose.Schema({
 }, {
   collection: 'teams'
 })
+
+teamSchema.plugin(autopopulate)
 
 const Team = mongoose.model('Team', teamSchema)
 
