@@ -94,6 +94,11 @@ router.put('/team/changeName', jsonParser, async (req, res) => {
 router.get('/team/projections', jsonParser, async (req, res) => {
   try {
     const team = await Team.findOne(req.body)
+
+    if(!team) {
+      throw new Error()
+    }
+
     var teamProjections = {}
 
     team.Players.forEach(function (player) {
