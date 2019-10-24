@@ -2,6 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const Team = require('../models/team')
+const Player = require('../models/player')
 
 const router = express.Router()
 var jsonParser = bodyParser.json()
@@ -86,6 +87,33 @@ router.put('/team/changeName', jsonParser, async (req, res) => {
     res.send(team)
   } catch(error) {
     res.status(404).send(error)
+  }
+})
+
+// GET: Get total team projections
+router.get('/team/projections', jsonParser, async (req, res) => {
+  try {
+    const team = await Team.findOne(req.body)
+    var teamProjections = {}
+
+    team.Players.forEach(function (player) {
+      var playerStats = Player.getStats(player)
+      for(key in playerStats) {
+        if(teamProjections.hasOwnProperty(key)) {
+          teamProjections[key] += playerStats[key]
+        } else {
+          teamProjections[key] = playerStats[key]
+        }
+      }
+    })
+
+    if(!teamProjections) {
+      throw new Error()
+    }
+
+    res.send(teamProjections)
+  } catch (error) {
+    res.status(404).send()
   }
 })
 
