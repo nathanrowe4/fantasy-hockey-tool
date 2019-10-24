@@ -1,7 +1,18 @@
 const mongoose = require('mongoose')
 const categoriesModule = require('../modules/categories')
 
-const playerSchema = new mongoose.Schema({
+function addCategories(playerObject) {
+  const categories = categoriesModule.getCategories()
+
+  categories.forEach(function (category) {
+    playerObject[category] = {
+      type: Number,
+      required: true
+    }
+  })
+}
+
+var playerObj = addCategories({
   Name: {
     type: String,
     required: true,
@@ -10,47 +21,10 @@ const playerSchema = new mongoose.Schema({
   Team: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Team'
-  },
-  G: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  A: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  PLUSMINUS: {
-    type: Number,
-    required: true
-  },
-  PIM: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  SOG: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  PPP: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  HITS: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  FOW: {
-    type: Number,
-    required: true,
-    minimum: 0
   }
-}, {
+})
+
+const playerSchema = new mongoose.Schema(playerObj, {
   collection: 'dobber'
 })
 
