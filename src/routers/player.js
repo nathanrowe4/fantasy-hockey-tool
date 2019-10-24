@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const categoriesModule = require('../modules/categories')
 const Player = require('../models/player')
 
 const router = express.Router()
@@ -20,7 +21,7 @@ async function getPlayerFromDatabase(query) {
 
 // Helper function to calculate difference of 2 players stats
 function getDifference(players) {
-  const categories = ['G', 'A', 'PIM', 'PLUSMINUS', 'PIM', 'SOG', 'PPP', 'HITS', 'FOW']
+  const categories = categoriesModule.getCategories()
   var differenceObj = {}
 
   categories.forEach(function (category) {

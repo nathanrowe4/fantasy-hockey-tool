@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const categoriesModule = require('../modules/categories')
 
 const playerSchema = new mongoose.Schema({
   Name: {
@@ -55,7 +56,7 @@ const playerSchema = new mongoose.Schema({
 
 playerSchema.statics.getStats = (player) => {
   var playerStats = {}
-  const categories = ["G", "A", "PLUSMINUS", "PIM", "SOG", "PPP", "HITS", "FOW"]
+  const categories = categoriesModule.getCategories()
   var playerJSON = player.toJSON()
 
   for(var key in playerJSON) {
