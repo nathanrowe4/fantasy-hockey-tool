@@ -31,11 +31,10 @@ const playerSchema = new mongoose.Schema(playerObj, {
 playerSchema.statics.getStats = (player) => {
   var playerStats = {}
   const categories = categoriesModule.getCategories()
-  var playerJSON = player.toJSON()
 
-  for(var key in playerJSON) {
-    if(playerJSON.hasOwnProperty(key) && categories.includes(key)) {
-      playerStats[key] = playerJSON[key]
+  for(var key in player) {
+    if(player.hasOwnProperty(key) && categories.includes(key)) {
+      playerStats[key] = player[key]
     }
   }
 
