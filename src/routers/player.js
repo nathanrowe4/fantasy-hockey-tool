@@ -11,9 +11,9 @@ async function getPlayerFromDatabase(query) {
   var player = undefined
 
   if(query.hasOwnProperty('id')) {
-    player = await Player.findById(query.id)
+    player = await Player.findById(query.id).lean()
   } else {
-    player = await Player.findOne(query)
+    player = await Player.findOne(query).lean()
   }
 
   return player
@@ -69,7 +69,8 @@ router.get('/playerLeaders', jsonParser, async (req, res) => {
 
     const players = await Player.find({}).
       limit(req.body.numPlayers).
-      sort(sortQuery)
+      sort(sortQuery).
+      lean()
 
     if(!players) {
       throw new Error()
@@ -95,7 +96,7 @@ router.get('/comparePlayers', jsonParser, async (req, res) => {
       query[key] = {$in: [req.body[key][0], req.body[key][1]]}
 
       // query database
-      const players = await Player.find(query)
+      const players = await Player.find(query).lean()
 
       if(players && players.length == 2) {
         const comparison = getDifference(players)
@@ -119,7 +120,7 @@ router.get('/playerFilter', jsonParser, async (req, res) => {
       query[category] = {$gt: req.body[category]}
     })
 
-    const players = await Player.find(query);
+    const players = await Player.find(query).lean()
 
     if(!players) {
       throw new Error()

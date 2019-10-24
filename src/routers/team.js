@@ -22,7 +22,7 @@ router.post('/team', jsonParser, async (req, res) => {
 // GET: Get team by parameter in body
 router.get('/team', jsonParser, async (req, res) => {
   try {
-    const team = await Team.find(req.body)
+    const team = await Team.find(req.body).lean({autopopulate: true})
 
     if(!team) {
       throw new Error()
@@ -93,7 +93,7 @@ router.put('/team/changeName', jsonParser, async (req, res) => {
 // GET: Get total team projections
 router.get('/team/projections', jsonParser, async (req, res) => {
   try {
-    const team = await Team.findOne(req.body)
+    const team = await Team.findOne(req.body).lean({autopopulate: true})
 
     if(!team) {
       throw new Error()
