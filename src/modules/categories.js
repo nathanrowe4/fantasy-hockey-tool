@@ -1,13 +1,14 @@
 var categoriesModule = (function() {
-  var categories = ['G', 'A', 'PLUSMINUS', 'PIM', 'SOG', 'PPP', 'HITS', 'FOW']
+  'use strict'
+  var _categories = ['G', 'A', 'PLUSMINUS', 'PIM', 'SOG', 'PPP', 'HITS', 'FOW']
 
   function getCategories() {
-    return categories
+    return _categories
   }
 
   return {
-    getCategories
+    getCategories: getCategories
   }
-})
+}())
 
 module.exports = categoriesModule
