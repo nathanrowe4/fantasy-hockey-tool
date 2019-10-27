@@ -3,6 +3,8 @@ const bodyParser = require('body-parser')
 const categoriesModule = require('../modules/categories')
 const Player = require('../models/player')
 
+const ztable = require('ztable')
+
 const router = express.Router()
 var jsonParser = bodyParser.json()
 
@@ -29,6 +31,64 @@ function getDifference(players) {
   })
 
   return differenceObj
+}
+
+// Helper function to return player averages
+async function getPlayerAveragesAndStandardDeviations() {
+  var playerAverages = await Player.aggregate([
+    {
+      "$group": {
+        "_id": null,
+        "G": {$avg: "$G"},
+        "A": {$avg: "$A"},
+        "PLUSMINUS": {$avg: "$PLUSMINUS"},
+        "PIM": {$avg: "$PIM"},
+        "SOG": {$avg: "$SOG"},
+        "PPP": {$avg: "$PPP"},
+        "HITS": {$avg: "$HITS"},
+        "FOW": {$avg: "$FOW"}
+      }
+    }
+  ])
+
+  var playerStandardDeviations = await Player.aggregate([
+    {
+      "$group": {
+        "_id": null,
+        "G": {$stdDevPop: "$G"},
+        "A": {$stdDevPop: "$A"},
+        "PLUSMINUS": {$stdDevPop: "$PLUSMINUS"},
+        "PIM": {$stdDevPop: "$PIM"},
+        "SOG": {$stdDevPop: "$SOG"},
+        "PPP": {$stdDevPop: "$PPP"},
+        "HITS": {$stdDevPop: "$HITS"},
+        "FOW": {$stdDevPop: "$FOW"}
+      }
+    }
+  ])
+
+  var playerData = {
+    avg: playerAverages,
+    std: playerStandardDeviations
+  }
+
+  return playerData
+}
+
+// Helper function to get percentiles
+async function getPlayerPercentiles(player) {
+  var populationData = await getPlayerAveragesAndStandardDeviations()
+
+  var percentiles = {}
+
+  var categories = categoriesModule.getCategories()
+
+  categories.forEach(function (category) {
+    var zscore = (player[category] - populationData["avg"][0][category]) / populationData["std"][0][category]
+    percentiles[category] = ztable(zscore) * 100
+  })
+
+  return percentiles
 }
 
 // GET: Get player by id
@@ -128,6 +188,23 @@ router.get('/playerFilter', jsonParser, async (req, res) => {
 
       res.send(players)
   } catch(error) {
+    res.status(404).send()
+  }
+})
+
+// GET: Get percentile scores for each category
+router.get('/playerPercentile', async (req, res) => {
+  try {
+    const player = await getPlayerFromDatabase(req.body.playerQuery)
+
+    if(!player) {
+      throw new Error()
+    }
+
+    var percentiles = await getPlayerPercentiles(player)
+
+    res.send(percentiles)
+  } catch (error) {
     res.status(404).send()
   }
 })
