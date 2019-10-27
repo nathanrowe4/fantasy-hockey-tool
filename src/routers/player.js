@@ -79,7 +79,9 @@ async function getPlayerAveragesAndStandardDeviations() {
 async function getPlayerPercentiles(player) {
   var populationData = await getPlayerAveragesAndStandardDeviations()
 
-  var percentiles = {}
+  var percentiles = {
+    Name: player.Name
+  }
 
   var categories = categoriesModule.getCategories()
 
