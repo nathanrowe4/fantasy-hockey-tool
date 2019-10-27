@@ -195,7 +195,7 @@ router.get('/playerFilter', jsonParser, async (req, res) => {
 // GET: Get percentile scores for each category
 router.get('/playerPercentile', async (req, res) => {
   try {
-    const player = await Player.findOne(req.body.playerQuery).lean()
+    const player = await getPlayerFromDatabase(req.body.playerQuery)
 
     if(!player) {
       throw new Error()
