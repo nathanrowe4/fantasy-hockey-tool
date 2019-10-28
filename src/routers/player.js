@@ -34,42 +34,38 @@ function getDifference(players) {
 
 // Helper function to return player averages
 async function getPlayerAveragesAndStandardDeviations(query) {
-  var filter = {
+  const categories = categoriesModule.getCategories()
+
+  var averageFilter = {
+    "$group": {
+      "_id": null
+    }
+  }
+
+  var standardDeviationFilter = {
+    "$group": {
+      "_id": null
+    }
+  }
+
+  categories.forEach(function (category) {
+    var lookup = "$" + category
+    averageFilter["$group"][category] = {$avg: lookup}
+    standardDeviationFilter["$group"][category] = {$stdDevPop: lookup}
+  })
+
+  var matchFilter = {
     $match: query
   }
 
   var playerAverages = await Player.aggregate([
-    filter,
-    {
-      "$group": {
-        "_id": null,
-        "G": {$avg: "$G"},
-        "A": {$avg: "$A"},
-        "PLUSMINUS": {$avg: "$PLUSMINUS"},
-        "PIM": {$avg: "$PIM"},
-        "SOG": {$avg: "$SOG"},
-        "PPP": {$avg: "$PPP"},
-        "HITS": {$avg: "$HITS"},
-        "FOW": {$avg: "$FOW"}
-      }
-    }
+    matchFilter,
+    averageFilter
   ])
 
   var playerStandardDeviations = await Player.aggregate([
-    filter,
-    {
-      "$group": {
-        "_id": null,
-        "G": {$stdDevPop: "$G"},
-        "A": {$stdDevPop: "$A"},
-        "PLUSMINUS": {$stdDevPop: "$PLUSMINUS"},
-        "PIM": {$stdDevPop: "$PIM"},
-        "SOG": {$stdDevPop: "$SOG"},
-        "PPP": {$stdDevPop: "$PPP"},
-        "HITS": {$stdDevPop: "$HITS"},
-        "FOW": {$stdDevPop: "$FOW"}
-      }
-    }
+    matchFilter,
+    standardDeviationFilter
   ])
 
   var playerData = {
