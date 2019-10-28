@@ -2,7 +2,6 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const categoriesModule = require('../modules/categories')
 const Player = require('../models/player')
-
 const ztable = require('ztable')
 
 const router = express.Router()
@@ -34,8 +33,13 @@ function getDifference(players) {
 }
 
 // Helper function to return player averages
-async function getPlayerAveragesAndStandardDeviations() {
+async function getPlayerAveragesAndStandardDeviations(query) {
+  var filter = {
+    $match: query
+  }
+
   var playerAverages = await Player.aggregate([
+    filter,
     {
       "$group": {
         "_id": null,
@@ -52,6 +56,7 @@ async function getPlayerAveragesAndStandardDeviations() {
   ])
 
   var playerStandardDeviations = await Player.aggregate([
+    filter,
     {
       "$group": {
         "_id": null,
@@ -76,8 +81,8 @@ async function getPlayerAveragesAndStandardDeviations() {
 }
 
 // Helper function to get percentiles
-async function getPlayerPercentiles(player) {
-  var populationData = await getPlayerAveragesAndStandardDeviations()
+async function getPlayerPercentiles(player, populationQuery) {
+  var populationData = await getPlayerAveragesAndStandardDeviations(populationQuery)
 
   var percentiles = {
     Name: player.Name
@@ -86,8 +91,10 @@ async function getPlayerPercentiles(player) {
   var categories = categoriesModule.getCategories()
 
   categories.forEach(function (category) {
-    var zscore = (player[category] - populationData["avg"][0][category]) / populationData["std"][0][category]
-    percentiles[category] = ztable(zscore) * 100
+    if(populationData["avg"][0] && populationData["std"][0]) {
+      var zscore = (player[category] - populationData["avg"][0][category]) / populationData["std"][0][category]
+      percentiles[category] = ztable(zscore) * 100
+    }
   })
 
   return percentiles
@@ -203,7 +210,7 @@ router.get('/playerPercentile', async (req, res) => {
       throw new Error()
     }
 
-    var percentiles = await getPlayerPercentiles(player)
+    var percentiles = await getPlayerPercentiles(player, req.body.populationQuery)
 
     res.send(percentiles)
   } catch (error) {
