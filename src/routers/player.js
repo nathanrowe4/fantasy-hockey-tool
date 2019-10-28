@@ -31,28 +31,31 @@ function getDifference(players) {
 
   return differenceObj
 }
-
-// Helper function to return player averages
-async function getPlayerAveragesAndStandardDeviations(query) {
+// Helper function to return $group filter
+function getGroupFilter(id, aggregator) {
   const categories = categoriesModule.getCategories()
 
-  var averageFilter = {
+  var filter = {
     "$group": {
-      "_id": null
+      "_id": id
     }
   }
 
-  var standardDeviationFilter = {
-    "$group": {
-      "_id": null
-    }
-  }
+  const aggregatorString = "$" + aggregator
 
   categories.forEach(function (category) {
     var lookup = "$" + category
-    averageFilter["$group"][category] = {$avg: lookup}
-    standardDeviationFilter["$group"][category] = {$stdDevPop: lookup}
+    filter["$group"][category] = {}
+    filter["$group"][category][aggregatorString] = lookup
   })
+
+  return filter
+}
+
+// Helper function to return player averages
+async function getPlayerAveragesAndStandardDeviations(query) {
+  var averageFilter = getGroupFilter(null, "avg")
+  var standardDeviationFilter = getGroupFilter(null, "stdDevPop")
 
   var matchFilter = {
     $match: query
@@ -211,6 +214,30 @@ router.get('/playerPercentile', async (req, res) => {
     res.send(percentiles)
   } catch (error) {
     res.status(404).send()
+  }
+})
+
+// GET: Get population-wide statistics
+router.get('/populationStatistics', async (req, res) => {
+  try {
+    const filter = getGroupFilter(null, "sum")
+
+    var total = await Player.aggregate([
+      filter
+    ])
+
+    var available = await Player.aggregate([
+      {
+        $match: {Team: ""}
+      }, filter
+    ])
+
+    total = total[0]
+    available = available[0]
+
+    res.send({total, available})
+  } catch (error) {
+    res.status(404).send(error)
   }
 })
 
