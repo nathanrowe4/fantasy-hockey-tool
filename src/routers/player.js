@@ -1,7 +1,10 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const stats = require('simple-statistics')
+
 const categoriesModule = require('../modules/categories')
 const queryModule = require('../modules/query')
+
 const Player = require('../models/player')
 const ztable = require('ztable')
 
@@ -245,6 +248,28 @@ router.get('/populationStatistics', async (req, res) => {
     res.send({total, available})
   } catch (error) {
     res.status(404).send(error)
+  }
+})
+
+// GET: Get PDF for specified categories
+router.get('/categoryPdf', jsonParser, async (req, res) => {
+  try {
+    var categoriesArray = await Player.aggregate([
+      getGroupFilter(null, "push")
+    ])
+
+    categoriesArray = categoriesArray[0]
+
+    var PDF = {}
+    var categories = categoriesModule.getCategories()
+
+    categories.forEach(function (category) {
+      PDF[category] = stats.kernelDensityEstimation(categoriesArray[category])
+    })
+
+    res.send(PDF)
+  } catch (error) {
+    res.status(404).send()
   }
 })
 
