@@ -41,6 +41,37 @@ playerSchema.statics.getStats = (player) => {
   return playerStats
 }
 
+playerSchema.statics.getGroupFilter = (id, aggregator) => {
+  const categories = categoriesModule.getCategories()
+
+  var filter = {
+    "$group": {
+      "_id": id
+    }
+  }
+
+  const aggregatorString = "$" + aggregator
+
+  categories.forEach(function (category) {
+    var lookup = "$" + category
+    filter["$group"][category] = {}
+    filter["$group"][category][aggregatorString] = lookup
+  })
+
+  return filter
+}
+
+playerSchema.statics.getDifference = (players) => {
+  const categories = categoriesModule.getCategories()
+  var differenceObj = {}
+
+  categories.forEach(function (category) {
+    differenceObj[category] = players[0][category] - players[1][category]
+  })
+
+  return differenceObj
+}
+
 const Player = mongoose.model('Player', playerSchema)
 
 module.exports = Player

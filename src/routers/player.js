@@ -24,42 +24,10 @@ async function getPlayerFromDatabase(query) {
   return player
 }
 
-// Helper function to calculate difference of 2 players stats
-function getDifference(players) {
-  const categories = categoriesModule.getCategories()
-  var differenceObj = {}
-
-  categories.forEach(function (category) {
-    differenceObj[category] = players[0][category] - players[1][category]
-  })
-
-  return differenceObj
-}
-// Helper function to return $group filter
-function getGroupFilter(id, aggregator) {
-  const categories = categoriesModule.getCategories()
-
-  var filter = {
-    "$group": {
-      "_id": id
-    }
-  }
-
-  const aggregatorString = "$" + aggregator
-
-  categories.forEach(function (category) {
-    var lookup = "$" + category
-    filter["$group"][category] = {}
-    filter["$group"][category][aggregatorString] = lookup
-  })
-
-  return filter
-}
-
 // Helper function to return player averages
 async function getPlayerAveragesAndStandardDeviations(query) {
-  var averageFilter = getGroupFilter(null, "avg")
-  var standardDeviationFilter = getGroupFilter(null, "stdDevPop")
+  var averageFilter = Player.getGroupFilter(null, "avg")
+  var standardDeviationFilter = Player.getGroupFilter(null, "stdDevPop")
 
   var matchFilter = {
     $match: query || queryModule.getAvailablePlayersQuery()
@@ -177,7 +145,7 @@ router.get('/comparePlayers', jsonParser, async (req, res) => {
       const players = await Player.find(query).lean()
 
       if(players && players.length == 2) {
-        const comparison = getDifference(players)
+        const comparison = Player.getDifference(players)
         res.send({players, comparison})
       }
     }
@@ -230,7 +198,7 @@ router.get('/playerPercentile', async (req, res) => {
 // GET: Get population-wide statistics
 router.get('/populationStatistics', async (req, res) => {
   try {
-    const filter = getGroupFilter(null, "sum")
+    const filter = Player.getGroupFilter(null, "sum")
 
     var total = await Player.aggregate([
       filter
@@ -255,7 +223,7 @@ router.get('/populationStatistics', async (req, res) => {
 router.get('/categoryPdf', jsonParser, async (req, res) => {
   try {
     var categoriesArray = await Player.aggregate([
-      getGroupFilter(null, "push")
+      Player.getGroupFilter(null, "push")
     ])
 
     categoriesArray = categoriesArray[0]
