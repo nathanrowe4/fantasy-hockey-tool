@@ -59,7 +59,7 @@ async function getPlayerAveragesAndStandardDeviations(query) {
   var standardDeviationFilter = getGroupFilter(null, "stdDevPop")
 
   var matchFilter = {
-    $match: query
+    $match: query || queryModule.getAvailablePlayersQuery()
   }
 
   var playerAverages = await Player.aggregate([
