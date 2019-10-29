@@ -132,6 +132,12 @@ router.get('/players', jsonParser, async (req, res) => {
 // GET: Get top players for category
 router.get('/playerLeaders', jsonParser, async (req, res) => {
   try {
+    var categories = categoriesModule.getCategories()
+
+    if(!categories.includes(req.body.category)) {
+      throw new Error()
+    }
+
     var sortQuery = {}
     sortQuery[req.body.category] = -1
 
@@ -146,7 +152,7 @@ router.get('/playerLeaders', jsonParser, async (req, res) => {
 
     res.send(players)
   } catch(error) {
-    res.status(404).send()
+    res.status(404).send(error)
   }
 })
 
