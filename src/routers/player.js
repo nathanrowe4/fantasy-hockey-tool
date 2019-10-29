@@ -99,13 +99,22 @@ router.get('/players/:id', jsonParser, async (req, res) => {
 // GET: Get player by parameter in body
 router.get('/players', jsonParser, async (req, res) => {
   try {
-    const player = await getPlayerFromDatabase(req.body)
+    const playerProjections = await getPlayerFromDatabase(req.body)
 
-    if(!player) {
+    if(!playerProjections) {
       throw new Error()
     }
 
-    res.send(player)
+    const playerSeasonStats = await nhlApiModule.getPlayerStats(playerProjections.Name, 'statsSingleSeason')
+    const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
+    const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
+
+    res.send({
+      playerProjections,
+      playerSeasonStats,
+      playerForecastedStats,
+      playerAdjustedStats
+    })
   } catch(error) {
     res.status(404).send()
   }
