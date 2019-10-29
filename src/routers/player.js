@@ -4,6 +4,7 @@ const stats = require('simple-statistics')
 
 const categoriesModule = require('../modules/categories')
 const queryModule = require('../modules/query')
+const nhlApiModule = require('../modules/nhlApi')
 
 const Player = require('../models/player')
 const ztable = require('ztable')
@@ -74,13 +75,22 @@ async function getPlayerPercentiles(player, populationQuery) {
 // GET: Get player by id
 router.get('/players/:id', jsonParser, async (req, res) => {
   try {
-    const player = await getPlayerFromDatabase(req.params)
+    const playerProjections = await getPlayerFromDatabase(req.params)
 
-    if(!player) {
+    if(!playerProjections) {
       throw new Error()
     }
 
-    res.send(player)
+    const playerSeasonStats = await nhlApiModule.getPlayerStats(playerProjections.Name, 'statsSingleSeason')
+    const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
+    const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
+
+    res.send({
+      playerProjections,
+      playerSeasonStats,
+      playerForecastedStats,
+      playerAdjustedStats
+    })
   } catch(error) {
     res.status(404).send()
   }
