@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const categoriesModule = require('../modules/categories')
+const queryModule = require('../modules/query')
 const Player = require('../models/player')
 const ztable = require('ztable')
 
@@ -234,7 +235,7 @@ router.get('/populationStatistics', async (req, res) => {
 
     var available = await Player.aggregate([
       {
-        $match: {Team: ""}
+        $match: queryModule.getAvailablePlayersQuery()
       }, filter
     ])
 
