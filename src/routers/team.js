@@ -43,6 +43,9 @@ router.put('/team/addPlayer', jsonParser, async (req, res) => {
     const team = await Team.findOneAndUpdate({ _id: teamId },
       {$push: { Players: newPlayerId }}, {useFindAndModify: false})
 
+    const player = await Player.findOneAndUpdate({_id: newPlayerId},
+      {Team: team.Name}, {useFindAndModify: false})
+
     if(!team) {
       throw new Error()
     }

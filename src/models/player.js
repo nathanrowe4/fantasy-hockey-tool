@@ -19,8 +19,8 @@ var playerObj = addCategories({
     trim: true
   },
   Team: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Team'
+    type: String,
+    trim: true
   }
 })
 
