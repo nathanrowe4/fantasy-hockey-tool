@@ -95,7 +95,7 @@ async function getPlayerPercentiles(player, populationQuery) {
 
   categories.forEach(function (category) {
     if(populationData["avg"][0] && populationData["std"][0]) {
-      var zscore = (player[category] - populationData["avg"][0][category]) / populationData["std"][0][category]
+      var zscore = stats.zScore(player[category], populationData["avg"][0][category], populationData["std"][0][category])
       percentiles[category] = ztable(zscore) * 100
     }
   })
