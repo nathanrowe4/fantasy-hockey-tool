@@ -141,7 +141,7 @@ router.get('/playerLeaders', jsonParser, async (req, res) => {
     var sortQuery = {}
     sortQuery[req.body.category] = -1
 
-    const players = await Player.find({}).
+    const players = await Player.find(req.body.playerFilter).
       limit(req.body.numPlayers).
       sort(sortQuery).
       lean()
