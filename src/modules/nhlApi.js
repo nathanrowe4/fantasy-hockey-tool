@@ -18,6 +18,8 @@ var nhlApiModule = (function () {
 		'HITS': 'hits'
 	}
 
+  const _supportedCategories = Object.keys(_categoriesMap)
+
 	async function _getPlayerId(playerName) {
 		var data = await request.get({
 			url: _teamUrl + '?expand=team.roster',
@@ -49,7 +51,7 @@ var nhlApiModule = (function () {
     return playerId
 	}
 
-	async function getPlayerStats(playerName, statType) {
+	async function _getPlayerStats(playerName, statType) {
 		var playerId = await _getPlayerId(playerName)
 
 		var requestUrl = _playerUrl + '/' + playerId + '/stats?stats=' + statType
@@ -69,24 +71,43 @@ var nhlApiModule = (function () {
     return data.stats[0].splits[0]
 	}
 
+  async function getPlayerSeasonStats(playerName) {
+    var playerStats = await _getPlayerStats(playerName, 'statsSingleSeason')
+
+    var categories = categoriesModule.getCategories()
+
+    var seasonStats = {}
+
+    categories.forEach(function (category) {
+      if(_supportedCategories.includes(category)) {
+        var nhlApiCategory = _categoriesMap[category]
+        seasonStats[category] = playerStats.stat[nhlApiCategory]
+      }
+    })
+
+    return seasonStats
+  }
+
 	async function getPlayerStatsPace(playerName, numExpectedGames = 82) {
 		var categories = categoriesModule.getCategories()
 
-		var playerStats = await getPlayerStats(playerName, 'statsSingleSeason')
+		var playerStats = await _getPlayerStats(playerName, 'statsSingleSeason')
 
 		var paceStats = {}
 
 		categories.forEach(function (category) {
-			var nhlApiCategory = _categoriesMap[category]
-			paceStats[category] = playerStats.stat[nhlApiCategory] * numExpectedGames / playerStats.stat.games
+      if(_supportedCategories.includes(category)) {
+        var nhlApiCategory = _categoriesMap[category]
+        paceStats[category] = playerStats.stat[nhlApiCategory] * numExpectedGames / playerStats.stat.games
+      }
 		})
 
 		return paceStats
 	}
 
 	async function getPlayerAdjustedGoals(playerName, numExpectedGames = 82) {
-		var playerStats = await getPlayerStats(playerName, 'statsSingleSeason')
-		var playerCareerStats = await getPlayerStats(playerName, 'careerRegularSeason')
+		var playerStats = await _getPlayerStats(playerName, 'statsSingleSeason')
+		var playerCareerStats = await _getPlayerStats(playerName, 'careerRegularSeason')
 
 		var adjustedGoals = playerStats.stat['goals'] * playerCareerStats.stat['shotPct'] / playerStats.stat['shotPct']
 		var projAdjustedGoals = playerStats.stat['shots'] * numExpectedGames / playerStats.stat.games * playerCareerStats.stat['shotPct'] / 100
@@ -98,7 +119,7 @@ var nhlApiModule = (function () {
 	}
 
 	return {
-		getPlayerStats: getPlayerStats,
+		getPlayerSeasonStats: getPlayerSeasonStats,
 		getPlayerStatsPace: getPlayerStatsPace,
 		getPlayerAdjustedGoals: getPlayerAdjustedGoals
 	}

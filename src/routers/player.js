@@ -81,7 +81,7 @@ router.get('/players/:id', jsonParser, async (req, res) => {
       throw new Error()
     }
 
-    const playerSeasonStats = await nhlApiModule.getPlayerStats(playerProjections.Name, 'statsSingleSeason')
+    const playerSeasonStats = await nhlApiModule.getPlayerSeasonStats(playerProjections.Name)
     const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
     const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
 
@@ -105,7 +105,7 @@ router.get('/players', jsonParser, async (req, res) => {
       throw new Error()
     }
 
-    const playerSeasonStats = await nhlApiModule.getPlayerStats(playerProjections.Name, 'statsSingleSeason')
+    const playerSeasonStats = await nhlApiModule.getPlayerSeasonStats(playerProjections.Name)
     const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
     const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
 
@@ -232,7 +232,18 @@ router.get('/populationStatistics', async (req, res) => {
     total = total[0]
     available = available[0]
 
-    res.send({total, available})
+    var percentAvailable = {}
+    const categories = categoriesModule.getCategories()
+
+    categories.forEach(function (category) {
+      percentAvailable[category] = available[category] / total[category] * 100
+    })
+
+    res.send({
+      total,
+      available,
+      percentAvailable
+    })
   } catch (error) {
     res.status(404).send(error)
   }
