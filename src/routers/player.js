@@ -4,6 +4,7 @@ const stats = require('simple-statistics')
 
 const categoriesModule = require('../modules/categories')
 const queryModule = require('../modules/query')
+const nhlApiModule = require('../modules/nhlApi')
 
 const Player = require('../models/player')
 const ztable = require('ztable')
@@ -74,13 +75,22 @@ async function getPlayerPercentiles(player, populationQuery) {
 // GET: Get player by id
 router.get('/players/:id', jsonParser, async (req, res) => {
   try {
-    const player = await getPlayerFromDatabase(req.params)
+    const playerProjections = await getPlayerFromDatabase(req.params)
 
-    if(!player) {
+    if(!playerProjections) {
       throw new Error()
     }
 
-    res.send(player)
+    const playerSeasonStats = await nhlApiModule.getPlayerSeasonStats(playerProjections.Name)
+    const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
+    const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
+
+    res.send({
+      playerProjections,
+      playerSeasonStats,
+      playerForecastedStats,
+      playerAdjustedStats
+    })
   } catch(error) {
     res.status(404).send()
   }
@@ -89,13 +99,22 @@ router.get('/players/:id', jsonParser, async (req, res) => {
 // GET: Get player by parameter in body
 router.get('/players', jsonParser, async (req, res) => {
   try {
-    const player = await getPlayerFromDatabase(req.body)
+    const playerProjections = await getPlayerFromDatabase(req.body)
 
-    if(!player) {
+    if(!playerProjections) {
       throw new Error()
     }
 
-    res.send(player)
+    const playerSeasonStats = await nhlApiModule.getPlayerSeasonStats(playerProjections.Name)
+    const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
+    const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
+
+    res.send({
+      playerProjections,
+      playerSeasonStats,
+      playerForecastedStats,
+      playerAdjustedStats
+    })
   } catch(error) {
     res.status(404).send()
   }
@@ -213,7 +232,18 @@ router.get('/populationStatistics', async (req, res) => {
     total = total[0]
     available = available[0]
 
-    res.send({total, available})
+    var percentAvailable = {}
+    const categories = categoriesModule.getCategories()
+
+    categories.forEach(function (category) {
+      percentAvailable[category] = available[category] / total[category] * 100
+    })
+
+    res.send({
+      total,
+      available,
+      percentAvailable
+    })
   } catch (error) {
     res.status(404).send(error)
   }
