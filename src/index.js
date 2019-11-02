@@ -1,7 +1,10 @@
 const express = require('express')
 const favicon = require('serve-favicon')
 const path = require('path')
-require('./db/mongoose');
+const pino = require('pino')()
+
+require('./db/mongoose')
+
 const playerRouter = require('./routers/player')
 const teamRouter = require('./routers/team')
 
@@ -16,5 +19,5 @@ app.use(playerRouter)
 app.use(teamRouter)
 
 app.listen(port, () => {
-  console.log("Server is up on port ", port)
+  pino.info('The server is up on port ' + port)
 })
