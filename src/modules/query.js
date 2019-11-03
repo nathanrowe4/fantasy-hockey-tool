@@ -1,14 +1,18 @@
-var queryModule = (function() {
-  'use strict'
-  var _availablePlayers = { Team: "" }
+const queryModule = (function() {
+  'use strict';
+  const _availablePlayers = {Team: ''};
 
+  /**
+   * Helper function to get available players query
+   * @return {Object}
+   */
   function getAvailablePlayersQuery() {
-    return _availablePlayers
+    return _availablePlayers;
   }
 
   return {
-    getAvailablePlayersQuery: getAvailablePlayersQuery
-  }
-}())
+    getAvailablePlayersQuery: getAvailablePlayersQuery,
+  };
+}());
 
-module.exports = queryModule
+module.exports = queryModule;

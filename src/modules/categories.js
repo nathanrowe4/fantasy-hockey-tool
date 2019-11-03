@@ -1,14 +1,20 @@
-var categoriesModule = (function() {
-  'use strict'
-  var _categories = ['G', 'A', 'PLUSMINUS', 'PIM', 'SOG', 'PPP', 'HITS', 'FOW']
+const categoriesModule = (function() {
+  'use strict';
+  const _categories = [
+    'G', 'A', 'PLUSMINUS', 'PIM', 'SOG', 'PPP', 'HITS', 'FOW',
+  ];
 
+  /**
+   * Helper function to get configured categories
+   * @return {Array}
+   */
   function getCategories() {
-    return _categories
+    return _categories;
   }
 
   return {
-    getCategories: getCategories
-  }
-}())
+    getCategories: getCategories,
+  };
+}());
 
-module.exports = categoriesModule
+module.exports = categoriesModule;
