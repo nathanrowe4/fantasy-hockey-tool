@@ -109,12 +109,36 @@ const nhlApiModule = (function() {
   }
 
   /**
+   * Function to get team data
+   * @param {Number} teamId - the id of the team
+   * @return {Object}
+   */
+  async function _getTeamData(teamId) {
+    const requestUrl = _teamUrl + '/' + teamId + '/' + 'stats';
+
+    const data = await request.get({
+      url: requestUrl,
+      json: true,
+      headers: {'User-Agent': 'request'},
+    }, (err, res, data) => {
+      if (err) {
+        console.log('Error: ' + err);
+      } else if (res.statusCode !== 200) {
+        console.log('Status: ' + res.statusCode);
+      }
+    });
+
+    return data.stats[0].splits[0];
+  }
+
+  /**
    * Function to get player breakout threshold
    * @param {String} playerName - the name of the player
    * @return {Number}
    */
-  async function _getBreakoutThreshold(playerName) {
+  async function _getBreakoutData(playerName) {
     const playerData = await _getPlayerData(playerName);
+    const teamData = await _getTeamData(playerData.currentTeam.id);
 
     const height = {};
 
@@ -122,8 +146,15 @@ const nhlApiModule = (function() {
     height['inches'] =
       parseInt(playerData.height.split(' ')[1].split('"')[0], 10);
 
-    return breakoutModule.getPlayerBreakout(playerData.primaryPosition.type,
-        height, playerData.weight);
+    const threshold = breakoutModule.getPlayerBreakout(
+        playerData.primaryPosition.type, height, playerData.weight);
+
+    const remainingGames = 82 - teamData.stat['gamesPlayed'];
+
+    return {
+      threshold,
+      remainingGames,
+    };
   }
 
   /**
@@ -207,17 +238,18 @@ const nhlApiModule = (function() {
 
     const breakoutEligibility = {};
 
-    const breakoutThreshold = await _getBreakoutThreshold(playerName);
+    const breakoutData = await _getBreakoutData(playerName);
 
-    if (careerGamesPlayed > breakoutThreshold) {
+    if (careerGamesPlayed > breakoutData['threshold']) {
       breakoutEligibility['isEligible'] = false;
       breakoutEligibility['gamesToEligibility'] = 0;
       breakoutEligibility['eligibleThisSeason'] = false;
     } else {
       breakoutEligibility['isEligible'] = true;
-      const gamesToBreakout = breakoutThreshold - careerGamesPlayed;
+      const gamesToBreakout = breakoutData['threshold'] - careerGamesPlayed;
       breakoutEligibility['gamesToBreakout'] = gamesToBreakout;
-      breakoutEligibility['breakoutThisSeason'] = gamesToBreakout < 82;
+      breakoutEligibility['breakoutThisSeason'] =
+        gamesToBreakout < breakoutData['remainingGames'];
     }
 
     return breakoutEligibility;
