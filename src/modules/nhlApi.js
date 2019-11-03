@@ -83,6 +83,15 @@ const nhlApiModule = (function() {
   }
 
   /**
+   * Function to get player breakout threshold
+   * @param {String} playerName - the name of the player
+   * @return {Number}
+   */
+  async function _getBreakoutThreshold(playerName) {
+    return 400;
+  }
+
+  /**
    * Function to get player season stats
    * @param {String} playerName - the name of the player
    * @return {Object}
@@ -151,10 +160,37 @@ const nhlApiModule = (function() {
     };
   }
 
+  /**
+   * Function to get player breakout eligibility according to dobber's criteria
+   * @param {String} playerName - the name of the player
+   * @return {Object}
+   */
+  async function getBreakoutEligibility(playerName) {
+    const careerPlayerStats =
+      await _getPlayerStats(playerName, 'careerRegularSeason');
+    const careerGamesPlayed = careerPlayerStats.stat['games'];
+
+    const breakoutEligibility = {};
+
+    const breakoutThreshold = await _getBreakoutThreshold(playerName);
+
+    if (careerGamesPlayed > breakoutThreshold) {
+      breakoutEligibility['isEligible'] = false;
+      breakoutEligibility['gamesToEligibility'] = 0;
+      breakoutEligibility['eligibleThisSeason'] = false;
+    } else {
+      breakoutEligibility['isEligible'] = true;
+      const gamesToBreakout = breakoutThreshold - careerGamesPlayed;
+      breakoutEligibility['gamesToBreakout'] = gamesToBreakout;
+      breakoutEligibility['breakoutThisSeason'] = gamesToBreakout < 82;
+    }
+  }
+
   return {
     getPlayerSeasonStats: getPlayerSeasonStats,
     getPlayerStatsPace: getPlayerStatsPace,
     getPlayerAdjustedGoals: getPlayerAdjustedGoals,
+    getBreakoutEligibility: getBreakoutEligibility,
   };
 }());
 
