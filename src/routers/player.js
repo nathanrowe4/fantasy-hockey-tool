@@ -102,12 +102,15 @@ router.get('/players/:id', jsonParser, async (req, res) => {
       await nhlApiModule.getPlayerStatsPace(playerProjections.Name);
     const playerAdjustedStats =
       await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
+    const playerBreakout =
+      await nhlApiModule.getBreakoutEligibility(playerProjections.Name);
 
     res.send({
       playerProjections,
       playerSeasonStats,
       playerForecastedStats,
       playerAdjustedStats,
+      playerBreakout,
     });
   } catch (error) {
     res.status(404).send();
@@ -129,12 +132,15 @@ router.get('/players', jsonParser, async (req, res) => {
       await nhlApiModule.getPlayerStatsPace(playerProjections.Name);
     const playerAdjustedStats =
       await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
+    const playerBreakout =
+      await nhlApiModule.getBreakoutEligibility(playerProjections.Name);
 
     res.send({
       playerProjections,
       playerSeasonStats,
       playerForecastedStats,
       playerAdjustedStats,
+      playerBreakout,
     });
   } catch (error) {
     res.status(404).send();

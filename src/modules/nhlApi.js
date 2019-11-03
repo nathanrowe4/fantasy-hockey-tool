@@ -1,5 +1,6 @@
 const request = require('request-promise');
 const categoriesModule = require('./categories');
+const breakoutModule = require('./breakout');
 
 const nhlApiModule = (function() {
   'use strict';
@@ -83,6 +84,49 @@ const nhlApiModule = (function() {
   }
 
   /**
+   * Function to get player personal data
+   * @param {String} playerName - the name of the player
+   * @return {Object}
+   */
+  async function _getPlayerData(playerName) {
+    const playerId = await _getPlayerId(playerName);
+
+    const requestUrl = _playerUrl + '/' + playerId;
+
+    const data = await request.get({
+      url: requestUrl,
+      json: true,
+      headers: {'User-Agent': 'request'},
+    }, (err, res, data) => {
+      if (err) {
+        console.log('Error: ' + err);
+      } else if (res.statusCode !== 200) {
+        console.log('Status: ' + res.statusCode);
+      }
+    });
+
+    return data.people[0];
+  }
+
+  /**
+   * Function to get player breakout threshold
+   * @param {String} playerName - the name of the player
+   * @return {Number}
+   */
+  async function _getBreakoutThreshold(playerName) {
+    const playerData = await _getPlayerData(playerName);
+
+    const height = {};
+
+    height['feet'] = parseInt(playerData.height.split('\'')[0], 10);
+    height['inches'] =
+      parseInt(playerData.height.split(' ')[1].split('"')[0], 10);
+
+    return breakoutModule.getPlayerBreakout(playerData.primaryPosition.type,
+        height, playerData.weight);
+  }
+
+  /**
    * Function to get player season stats
    * @param {String} playerName - the name of the player
    * @return {Object}
@@ -151,10 +195,39 @@ const nhlApiModule = (function() {
     };
   }
 
+  /**
+   * Function to get player breakout eligibility according to dobber's criteria
+   * @param {String} playerName - the name of the player
+   * @return {Object}
+   */
+  async function getBreakoutEligibility(playerName) {
+    const careerPlayerStats =
+      await _getPlayerStats(playerName, 'careerRegularSeason');
+    const careerGamesPlayed = careerPlayerStats.stat['games'];
+
+    const breakoutEligibility = {};
+
+    const breakoutThreshold = await _getBreakoutThreshold(playerName);
+
+    if (careerGamesPlayed > breakoutThreshold) {
+      breakoutEligibility['isEligible'] = false;
+      breakoutEligibility['gamesToEligibility'] = 0;
+      breakoutEligibility['eligibleThisSeason'] = false;
+    } else {
+      breakoutEligibility['isEligible'] = true;
+      const gamesToBreakout = breakoutThreshold - careerGamesPlayed;
+      breakoutEligibility['gamesToBreakout'] = gamesToBreakout;
+      breakoutEligibility['breakoutThisSeason'] = gamesToBreakout < 82;
+    }
+
+    return breakoutEligibility;
+  }
+
   return {
     getPlayerSeasonStats: getPlayerSeasonStats,
     getPlayerStatsPace: getPlayerStatsPace,
     getPlayerAdjustedGoals: getPlayerAdjustedGoals,
+    getBreakoutEligibility: getBreakoutEligibility,
   };
 }());
 
