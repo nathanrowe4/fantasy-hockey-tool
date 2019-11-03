@@ -1,274 +1,296 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const stats = require('simple-statistics')
+const express = require('express');
+const bodyParser = require('body-parser');
+const stats = require('simple-statistics');
 
-const categoriesModule = require('../modules/categories')
-const queryModule = require('../modules/query')
-const nhlApiModule = require('../modules/nhlApi')
+const categoriesModule = require('../modules/categories');
+const queryModule = require('../modules/query');
+const nhlApiModule = require('../modules/nhlApi');
 
-const Player = require('../models/player')
-const ztable = require('ztable')
+const Player = require('../models/player');
+const ztable = require('ztable');
 
-const router = express.Router()
-var jsonParser = bodyParser.json()
+const router = express.Router();
+const jsonParser = bodyParser.json();
 
-// GET helper function
+/**
+ * Helper function to get player from player-projections collection
+ * @param {Object} query - query to use for mongodb find
+ */
 async function getPlayerFromDatabase(query) {
-  var player = undefined
+  let player = undefined;
 
-  if(query.hasOwnProperty('id')) {
-    player = await Player.findById(query.id).lean()
+  if (query.hasOwnProperty('id')) {
+    player = await Player.findById(query.id).lean();
   } else {
-    player = await Player.findOne(query).lean()
+    player = await Player.findOne(query).lean();
   }
 
-  return player
+  return player;
 }
 
-// Helper function to return player averages
+/**
+ * Helper function to return player averages and standard deviations
+ * @param {Object} query - query to use to get correct population for data
+ * @return {Object}
+ */
 async function getPlayerAveragesAndStandardDeviations(query) {
-  var averageFilter = Player.getGroupFilter(null, "avg")
-  var standardDeviationFilter = Player.getGroupFilter(null, "stdDevPop")
+  const averageFilter = Player.getGroupFilter(null, 'avg');
+  const standardDeviationFilter = Player.getGroupFilter(null, 'stdDevPop');
 
-  var matchFilter = {
-    $match: query || queryModule.getAvailablePlayersQuery()
-  }
+  const matchFilter = {
+    $match: query || queryModule.getAvailablePlayersQuery(),
+  };
 
-  var playerAverages = await Player.aggregate([
+  const playerAverages = await Player.aggregate([
     matchFilter,
-    averageFilter
-  ])
+    averageFilter,
+  ]);
 
-  var playerStandardDeviations = await Player.aggregate([
+  const playerStandardDeviations = await Player.aggregate([
     matchFilter,
-    standardDeviationFilter
-  ])
+    standardDeviationFilter,
+  ]);
 
-  var playerData = {
+  const playerData = {
     avg: playerAverages,
-    std: playerStandardDeviations
-  }
+    std: playerStandardDeviations,
+  };
 
-  return playerData
+  return playerData;
 }
 
-// Helper function to get percentiles
+/**
+ * Helper function to get percentiles
+ * @param {Object} player - the player document
+ * @param {Object} populationQuery - query to calculate population statistics
+ * @return {Object}
+ */
 async function getPlayerPercentiles(player, populationQuery) {
-  var populationData = await getPlayerAveragesAndStandardDeviations(populationQuery)
+  const populationData =
+    await getPlayerAveragesAndStandardDeviations(populationQuery);
 
-  var percentiles = {
-    Name: player.Name
-  }
+  const percentiles = {
+    Name: player.Name,
+  };
 
-  var categories = categoriesModule.getCategories()
+  const categories = categoriesModule.getCategories();
 
-  categories.forEach(function (category) {
-    if(populationData["avg"][0] && populationData["std"][0]) {
-      var zscore = stats.zScore(player[category], populationData["avg"][0][category], populationData["std"][0][category])
-      percentiles[category] = ztable(zscore) * 100
+  categories.forEach(function(category) {
+    if (populationData['avg'][0] && populationData['std'][0]) {
+      const zscore = stats.zScore(player[category],
+          populationData['avg'][0][category],
+          populationData['std'][0][category]);
+      percentiles[category] = ztable(zscore) * 100;
     }
-  })
+  });
 
-  return percentiles
+  return percentiles;
 }
 
 // GET: Get player by id
 router.get('/players/:id', jsonParser, async (req, res) => {
   try {
-    const playerProjections = await getPlayerFromDatabase(req.params)
+    const playerProjections = await getPlayerFromDatabase(req.params);
 
-    if(!playerProjections) {
-      throw new Error()
+    if (!playerProjections) {
+      throw new Error();
     }
 
-    const playerSeasonStats = await nhlApiModule.getPlayerSeasonStats(playerProjections.Name)
-    const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
-    const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
+    const playerSeasonStats =
+      await nhlApiModule.getPlayerSeasonStats(playerProjections.Name);
+    const playerForecastedStats =
+      await nhlApiModule.getPlayerStatsPace(playerProjections.Name);
+    const playerAdjustedStats =
+      await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
 
     res.send({
       playerProjections,
       playerSeasonStats,
       playerForecastedStats,
-      playerAdjustedStats
-    })
-  } catch(error) {
-    res.status(404).send()
+      playerAdjustedStats,
+    });
+  } catch (error) {
+    res.status(404).send();
   }
-})
+});
 
 // GET: Get player by parameter in body
 router.get('/players', jsonParser, async (req, res) => {
   try {
-    const playerProjections = await getPlayerFromDatabase(req.body)
+    const playerProjections = await getPlayerFromDatabase(req.body);
 
-    if(!playerProjections) {
-      throw new Error()
+    if (!playerProjections) {
+      throw new Error();
     }
 
-    const playerSeasonStats = await nhlApiModule.getPlayerSeasonStats(playerProjections.Name)
-    const playerForecastedStats = await nhlApiModule.getPlayerStatsPace(playerProjections.Name)
-    const playerAdjustedStats = await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name)
+    const playerSeasonStats =
+      await nhlApiModule.getPlayerSeasonStats(playerProjections.Name);
+    const playerForecastedStats =
+      await nhlApiModule.getPlayerStatsPace(playerProjections.Name);
+    const playerAdjustedStats =
+      await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
 
     res.send({
       playerProjections,
       playerSeasonStats,
       playerForecastedStats,
-      playerAdjustedStats
-    })
-  } catch(error) {
-    res.status(404).send()
+      playerAdjustedStats,
+    });
+  } catch (error) {
+    res.status(404).send();
   }
-})
+});
 
 // GET: Get top players for category
 router.get('/playerLeaders', jsonParser, async (req, res) => {
   try {
-    var categories = categoriesModule.getCategories()
+    const categories = categoriesModule.getCategories();
 
-    if(!categories.includes(req.body.category)) {
-      throw new Error()
+    if (!categories.includes(req.body.category)) {
+      throw new Error();
     }
 
-    var sortQuery = {}
-    sortQuery[req.body.category] = -1
+    const sortQuery = {};
+    sortQuery[req.body.category] = -1;
 
     const players = await Player.find(req.body.playerFilter).
-      limit(req.body.numPlayers).
-      sort(sortQuery).
-      lean()
+        limit(req.body.numPlayers).
+        sort(sortQuery).
+        lean();
 
-    if(!players) {
-      throw new Error()
+    if (!players) {
+      throw new Error();
     }
 
-    res.send(players)
-  } catch(error) {
-    res.status(404).send(error)
+    res.send(players);
+  } catch (error) {
+    res.status(404).send(error);
   }
-})
+});
 
 // GET: Compare players by parameter in body
 router.get('/comparePlayers', jsonParser, async (req, res) => {
   try {
-    const keys = Object.keys(req.body)
+    const keys = Object.keys(req.body);
 
     // iterate through body arguments
-    for(var count = 0; count < keys.length; count++) {
-      const key = keys[count]
+    for (let count = 0; count < keys.length; count++) {
+      const key = keys[count];
 
       // create query for provided fields in body
-      var query = {}
-      query[key] = {$in: [req.body[key][0], req.body[key][1]]}
+      const query = {};
+      query[key] = {$in: [req.body[key][0], req.body[key][1]]};
 
       // query database
-      const players = await Player.find(query).lean()
+      const players = await Player.find(query).lean();
 
-      if(players && players.length == 2) {
-        const comparison = Player.getDifference(players)
-        res.send({players, comparison})
+      if (players && players.length == 2) {
+        const comparison = Player.getDifference(players);
+        res.send({players, comparison});
       }
     }
 
-    throw new Error()
-  } catch(error) {
-    res.status(404).send(error)
+    throw new Error();
+  } catch (error) {
+    res.status(404).send(error);
   }
-})
+});
 
 // GET: Get players that meet minimum stat requirements
 router.get('/playerFilter', jsonParser, async (req, res) => {
   try {
-    var query = {}
-    var categories = Object.keys(req.body)
+    const query = {};
+    const categories = Object.keys(req.body);
 
-    categories.forEach(function (category) {
-      query[category] = {$gt: req.body[category]}
-    })
+    categories.forEach(function(category) {
+      query[category] = {$gt: req.body[category]};
+    });
 
-    const players = await Player.find(query).lean()
+    const players = await Player.find(query).lean();
 
-    if(!players) {
-      throw new Error()
+    if (!players) {
+      throw new Error();
     }
 
-      res.send(players)
-  } catch(error) {
-    res.status(404).send()
+    res.send(players);
+  } catch (error) {
+    res.status(404).send();
   }
-})
+});
 
 // GET: Get percentile scores for each category
 router.get('/playerPercentile', async (req, res) => {
   try {
-    const player = await getPlayerFromDatabase(req.body.playerQuery)
+    const player = await getPlayerFromDatabase(req.body.playerQuery);
 
-    if(!player) {
-      throw new Error()
+    if (!player) {
+      throw new Error();
     }
 
-    var percentiles = await getPlayerPercentiles(player, req.body.populationQuery)
+    const percentiles =
+      await getPlayerPercentiles(player, req.body.populationQuery);
 
-    res.send(percentiles)
+    res.send(percentiles);
   } catch (error) {
-    res.status(404).send()
+    res.status(404).send();
   }
-})
+});
 
 // GET: Get population-wide statistics
 router.get('/populationStatistics', async (req, res) => {
   try {
-    const filter = Player.getGroupFilter(null, "sum")
+    const filter = Player.getGroupFilter(null, 'sum');
 
-    var total = await Player.aggregate([
-      filter
-    ])
+    let total = await Player.aggregate([
+      filter,
+    ]);
 
-    var available = await Player.aggregate([
+    let available = await Player.aggregate([
       {
-        $match: queryModule.getAvailablePlayersQuery()
-      }, filter
-    ])
+        $match: queryModule.getAvailablePlayersQuery(),
+      }, filter,
+    ]);
 
-    total = total[0]
-    available = available[0]
+    total = total[0];
+    available = available[0];
 
-    var percentAvailable = {}
-    const categories = categoriesModule.getCategories()
+    const percentAvailable = {};
+    const categories = categoriesModule.getCategories();
 
-    categories.forEach(function (category) {
-      percentAvailable[category] = available[category] / total[category] * 100
-    })
+    categories.forEach(function(category) {
+      percentAvailable[category] = available[category] / total[category] * 100;
+    });
 
     res.send({
       total,
       available,
-      percentAvailable
-    })
+      percentAvailable,
+    });
   } catch (error) {
-    res.status(404).send(error)
+    res.status(404).send(error);
   }
-})
+});
 
 // GET: Get PDF for specified categories
 router.get('/categoryPdf', jsonParser, async (req, res) => {
   try {
-    var categoriesArray = await Player.aggregate([
-      Player.getGroupFilter(null, "push")
-    ])
+    let categoriesArray = await Player.aggregate([
+      Player.getGroupFilter(null, 'push'),
+    ]);
 
-    categoriesArray = categoriesArray[0]
+    categoriesArray = categoriesArray[0];
 
-    var PDF = {}
-    var categories = categoriesModule.getCategories()
+    const PDF = {};
+    const categories = categoriesModule.getCategories();
 
-    categories.forEach(function (category) {
-      PDF[category] = stats.kernelDensityEstimation(categoriesArray[category])
-    })
+    categories.forEach(function(category) {
+      PDF[category] = stats.kernelDensityEstimation(categoriesArray[category]);
+    });
 
-    res.send(PDF)
+    res.send(PDF);
   } catch (error) {
-    res.status(404).send()
+    res.status(404).send();
   }
-})
+});
 
-module.exports = router
+module.exports = router;
