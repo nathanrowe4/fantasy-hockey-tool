@@ -16,8 +16,8 @@ const breakoutModule = (function() {
    */
   function getPlayerBreakout(position, height, weight) {
     if (position === 'Forward') {
-      if ((height.feet >= 6 && height.inches >= 2) ||
-        (height.feet <= 5 && height.inches <= 10) ||
+      if ((height.feet >= 6 && height.inches > 2) ||
+        (height.feet <= 5 && height.inches < 10) ||
         weight < 171 || weight > 214) {
         return _breakoutByPosition['exceptionalForward'];
       } else {
