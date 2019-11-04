@@ -5,6 +5,7 @@ const stats = require('simple-statistics');
 const categoriesModule = require('../modules/categories');
 const queryModule = require('../modules/query');
 const nhlApiModule = require('../modules/nhlApi');
+const icyDataModule = require('../modules/icyData');
 
 const Player = require('../models/player');
 const ztable = require('ztable');
@@ -104,6 +105,8 @@ router.get('/players/:id', jsonParser, async (req, res) => {
       await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
     const playerBreakout =
       await nhlApiModule.getBreakoutEligibility(playerProjections.Name);
+    const adjustedAssists =
+      await icyDataModule.getSecondaryAssistRate(playerProjections.Name);
 
     res.send({
       playerProjections,
@@ -111,6 +114,7 @@ router.get('/players/:id', jsonParser, async (req, res) => {
       playerForecastedStats,
       playerAdjustedStats,
       playerBreakout,
+      adjustedAssists,
     });
   } catch (error) {
     res.status(404).send();
