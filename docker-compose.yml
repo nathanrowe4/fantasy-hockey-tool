@@ -1,17 +1,22 @@
 version: '3'
 services:
-  api:
-    image: fantasy-hockey-tool-express
-    build: .
-    networks:
-      - backend
-    ports:
-      - "3000:3000"
-  web-cli:
-    image: fantasy-hockey-tool-express
-    networks:
-      - backend
-    command: sh
-networks:
-  backend:
-    driver: bridge
+    redis:
+        container_name: fht-cache
+        image: redis
+        ports:
+            - "6379:6379"
+    mongo:
+        container_name: fht-db
+        image: mongo
+        ports:
+            - "27017:27017"
+        volumes:
+            - ./localFolder:/data/db
+    api:
+        container_name: fht-api
+        depends_on:
+            - redis
+            - mongo
+        build: .
+        ports:
+            - "3000:3000"
