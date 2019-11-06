@@ -1,24 +1,28 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const autopopulate = require('mongoose-autopopulate');
 
 const teamSchema = new mongoose.Schema({
   Manager: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   Players: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Player'
+    ref: 'Player',
+    autopopulate: true,
   }],
   Name: {
     type: String,
     required: true,
-    trim: true
-  }
+    trim: true,
+  },
 }, {
-  collection: 'teams'
-})
+  collection: 'teams',
+});
 
-const Team = mongoose.model('Team', teamSchema)
+teamSchema.plugin(autopopulate);
 
-module.exports = Team
+const Team = mongoose.model('Team', teamSchema);
+
+module.exports = Team;

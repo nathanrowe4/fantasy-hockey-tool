@@ -1,58 +1,81 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const categoriesModule = require('../modules/categories');
 
-const playerSchema = new mongoose.Schema({
+/**
+ * Helper function to add categories to player model
+ * @param {Object} playerObject - playerObject to add categories to
+ */
+function addCategories(playerObject) {
+  const categories = categoriesModule.getCategories();
+
+  categories.forEach(function(category) {
+    playerObject[category] = {
+      type: Number,
+      required: true,
+    };
+  });
+}
+
+const playerObj = addCategories({
   Name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   Team: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Team'
+    ref: 'Team',
   },
-  G: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  A: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  PLUSMINUS: {
-    type: Number,
-    required: true
-  },
-  PIM: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  SOG: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  PPP: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  HITS: {
-    type: Number,
-    required: true,
-    minimum: 0
-  },
-  FOW: {
-    type: Number,
-    required: true,
-    minimum: 0
+});
+
+const playerSchema = new mongoose.Schema(playerObj, {
+  collection: 'dobber',
+});
+
+playerSchema.statics.getStats = (player) => {
+  const playerStats = {};
+  const categories = categoriesModule.getCategories();
+
+  for (const key in player) {
+    if (player.hasOwnProperty(key) && categories.includes(key)) {
+      playerStats[key] = player[key];
+    }
   }
-}, {
-  collection: 'dobber'
-})
 
-const Player = mongoose.model('Player', playerSchema)
+  return playerStats;
+};
 
-module.exports = Player
+playerSchema.statics.getGroupFilter = (id, aggregator) => {
+  const categories = categoriesModule.getCategories();
+
+  const filter = {
+    '$group': {
+      '_id': id,
+    },
+  };
+
+  const aggregatorString = '$' + aggregator;
+
+  categories.forEach(function(category) {
+    const lookup = '$' + category;
+    filter['$group'][category] = {};
+    filter['$group'][category][aggregatorString] = lookup;
+  });
+
+  return filter;
+};
+
+playerSchema.statics.getDifference = (players) => {
+  const categories = categoriesModule.getCategories();
+  const differenceObj = {};
+
+  categories.forEach(function(category) {
+    differenceObj[category] = players[0][category] - players[1][category];
+  });
+
+  return differenceObj;
+};
+
+const Player = mongoose.model('Player', playerSchema);
+
+module.exports = Player;
