@@ -101,20 +101,21 @@ router.get('/players/:id', jsonParser, async (req, res) => {
       await nhlApiModule.getPlayerSeasonStats(playerProjections.Name);
     const playerForecastedStats =
       await nhlApiModule.getPlayerStatsPace(playerProjections.Name);
-    const playerAdjustedStats =
+    const playerAdjustedGoals =
       await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
     const playerBreakout =
       await nhlApiModule.getBreakoutEligibility(playerProjections.Name);
-    const adjustedAssists =
-      await icyDataModule.getSecondaryAssistRate(playerProjections.Name);
+    const playerAdjustedAssists =
+        await icyDataModule.getPlayerAdjustedAssists(playerProjections.Name,
+            playerForecastedStats['A'], playerSeasonStats['A']);
 
     res.send({
       playerProjections,
       playerSeasonStats,
       playerForecastedStats,
-      playerAdjustedStats,
+      playerAdjustedGoals,
       playerBreakout,
-      adjustedAssists,
+      playerAdjustedAssists,
     });
   } catch (error) {
     res.status(404).send();
@@ -134,17 +135,21 @@ router.get('/players', jsonParser, async (req, res) => {
       await nhlApiModule.getPlayerSeasonStats(playerProjections.Name);
     const playerForecastedStats =
       await nhlApiModule.getPlayerStatsPace(playerProjections.Name);
-    const playerAdjustedStats =
+    const playerAdjustedGoals =
       await nhlApiModule.getPlayerAdjustedGoals(playerProjections.Name);
     const playerBreakout =
       await nhlApiModule.getBreakoutEligibility(playerProjections.Name);
+    const playerAdjustedAssists =
+      await icyDataModule.getPlayerAdjustedAssists(playerProjections.Name,
+          playerForecastedStats['A'], playerSeasonStats['A']);
 
     res.send({
       playerProjections,
       playerSeasonStats,
       playerForecastedStats,
-      playerAdjustedStats,
+      playerAdjustedGoals,
       playerBreakout,
+      playerAdjustedAssists,
     });
   } catch (error) {
     res.status(404).send();
