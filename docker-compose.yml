@@ -1,0 +1,24 @@
+version: '3'
+services:
+  redis:
+    container_name: 'fht-cache'
+    image: redis:5.0.6-alpine
+    ports:
+      - '6379:6379'
+  mongo:
+    container_name: 'fht-db'
+    image: mongo:3.4.23-xenial
+    ports:
+      - '27017:27017'
+  api:
+    container_name: 'fht-api'
+    depends_on:
+      - redis
+      - mongo
+    build: '.'
+    ports:
+      - '3000:3000'
+networks:
+  default:
+    external:
+      name: fht-backend
