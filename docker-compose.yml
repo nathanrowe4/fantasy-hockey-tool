@@ -10,8 +10,6 @@ services:
     image: mongo:3.4.23-xenial
     ports:
       - '27017:27017'
-    volumes:
-      - ./projections-data:/data/db
   api:
     container_name: 'fht-api'
     depends_on:
