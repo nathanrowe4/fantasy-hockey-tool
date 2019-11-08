@@ -38,7 +38,6 @@ const redisCacheModule = (function() {
    * @param {String} playerId - ID of player
    */
   function setPlayerId(playerName, playerId) {
-    pino.info('Putting ' + playerName + ' into cache.');
     cache.set(playerName, playerId);
   }
 
