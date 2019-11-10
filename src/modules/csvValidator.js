@@ -1,25 +1,27 @@
 const csv = require('csv-parser');
 const fs = require('fs');
-const validate = require('validate');
+const Validator = require('fastest-validator');
+
+const validator = new Validator();
 
 const csvValidatorModule = (function() {
-  const _playerObjSchema = validate.Schema({
+  const _playerObjSchema = {
     Name: {
-      type: String,
-      required: true,
+      type: 'string',
+      min: 3,
     },
     Team: {
-      type: String,
-      required: true,
+      type: 'string',
     },
-  });
+  };
+
   /**
    * Function to ensure player object types and values are valid
    * @param {Object} playerObj - query to use to get correct population for data
    * @return {Boolean}
    */
   function _playerObjIsValid(playerObj) {
-    return _playerObjSchema.validate(playerObj).length === 0;
+    return validator.validate(playerObj, _playerObjSchema) === true;
   }
 
   /**
