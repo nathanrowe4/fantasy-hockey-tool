@@ -12,6 +12,13 @@ services:
       - '27017:27017'
     volumes:
       - 'projections-data:/data/db'
+  elasticsearch:
+    container_name: 'fht-search'
+    image: 'elasticsearch:7.4.2'
+    ports:
+      - '9200:9200'
+    volumes:
+      - 'search-data:/data/search'
   api:
     container_name: 'fht-api'
     depends_on:
@@ -26,3 +33,4 @@ networks:
       name: fht-backend
 volumes:
   projections-data:
+  search-data:
