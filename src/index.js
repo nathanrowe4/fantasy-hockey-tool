@@ -7,6 +7,7 @@ require('./db/mongoose');
 
 const playerRouter = require('./routers/player');
 const teamRouter = require('./routers/team');
+const projectionsRouter = require('./routers/projections');
 
 const app = express();
 app.get('/', (req, res) => res.send('Fantasy Hockey Tool!'));
@@ -17,6 +18,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(playerRouter);
 app.use(teamRouter);
+app.use(projectionsRouter);
+
 
 app.listen(port, () => {
   pino.info('The server is up on port ' + port);

@@ -1,6 +1,7 @@
 const request = require('request-promise');
 const categoriesModule = require('./categories');
 const breakoutModule = require('./breakout');
+const playerIdCacheModule = require('./playerIdCache');
 
 const nhlApiModule = (function() {
   'use strict';
@@ -27,6 +28,12 @@ const nhlApiModule = (function() {
    * @return {Number}
    */
   async function _getPlayerId(playerName) {
+    let playerId = await playerIdCacheModule.getPlayerId(playerName);
+
+    if (playerId !== 0) {
+      return playerId;
+    }
+
     const data = await request.get({
       url: _teamUrl + '?expand=team.roster',
       json: true,
@@ -39,8 +46,6 @@ const nhlApiModule = (function() {
       }
     });
 
-    let playerId = -1;
-
     data.teams.some(function(team) {
       team.roster.roster.some(function(player) {
         if (player.person.fullName === playerName) {
@@ -49,10 +54,12 @@ const nhlApiModule = (function() {
         }
       });
 
-      if (playerId !== -1) {
+      if (playerId !== 0) {
         return true;
       }
     });
+
+    playerIdCacheModule.setPlayerId(playerName, playerId);
 
     return playerId;
   }

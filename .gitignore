@@ -1,4 +1,5 @@
-projections-data/
+projections-data/player_projections.csv
 node_modules/
 package.json
 package-lock.json
+.eslintrc.json
