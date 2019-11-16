@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosastic = require('mongoosastic');
 const categoriesModule = require('../modules/categories');
 
 /**
@@ -21,6 +22,7 @@ const playerObj = addCategories({
     type: String,
     required: true,
     trim: true,
+    es_indexed: true,
   },
   Team: {
     type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +32,12 @@ const playerObj = addCategories({
 
 const playerSchema = new mongoose.Schema(playerObj, {
   collection: 'dobber',
+});
+
+playerSchema.plugin(mongoosastic, {
+  host: 'fht-search',
+  port: 9200,
+  curlDebug: true,
 });
 
 playerSchema.statics.getStats = (player) => {
@@ -77,5 +85,17 @@ playerSchema.statics.getDifference = (players) => {
 };
 
 const Player = mongoose.model('Player', playerSchema);
+const stream = Player.synchronize();
+let count = 0;
+
+stream.on('data', function(err, doc) {
+  count++;
+});
+stream.on('close', function() {
+  console.log('indexed ' + count + ' documents!');
+});
+stream.on('error', function(err) {
+  console.log(err);
+});
 
 module.exports = Player;

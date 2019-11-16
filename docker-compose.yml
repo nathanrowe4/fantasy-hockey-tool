@@ -15,8 +15,12 @@ services:
   elasticsearch:
     container_name: 'fht-search'
     image: 'elasticsearch:7.4.2'
+    environment:
+      - discovery.type=single-node
+      - node.name=fht-search
     ports:
       - '9200:9200'
+      - '9300:9300'
     volumes:
       - 'search-data:/data/search'
   api:
