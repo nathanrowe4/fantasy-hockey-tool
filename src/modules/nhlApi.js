@@ -67,13 +67,14 @@ const nhlApiModule = (function() {
   /**
    * Function to get player stats
    * @param {String} playerName - the name of the player
-   * @param {String} statType - the stat type to retrieve from API
+   * @param {String} statTypes - the stat type to retrieve from API
    * @return {Object}
    */
-  async function _getPlayerStats(playerName, statType) {
+  async function _getPlayerStats(playerName, statTypes) {
     const playerId = await _getPlayerId(playerName);
 
-    const requestUrl = _playerUrl + '/' + playerId + '/stats?stats=' + statType;
+    const requestUrl = _playerUrl + '/' + playerId + '/stats?stats=' +
+      statTypes;
 
     const data = await request.get({
       url: requestUrl,
@@ -87,7 +88,7 @@ const nhlApiModule = (function() {
       }
     });
 
-    return data.stats[0].splits[0];
+    return data.stats;
   }
 
   /**
@@ -195,15 +196,16 @@ const nhlApiModule = (function() {
   async function getPlayerStatsPace(playerName, numExpectedGames = 82) {
     const categories = categoriesModule.getCategories();
 
-    const playerStats = await _getPlayerStats(playerName, 'statsSingleSeason');
+    const playerStats = await _getPlayerStats(playerName,
+        'statsSingleSeason').splits[0].stat;
 
     const paceStats = {};
 
     categories.forEach(function(category) {
       if (_supportedCategories.includes(category)) {
         const nhlApiCategory = _categoriesMap[category];
-        paceStats[category] = playerStats.stat[nhlApiCategory] *
-          numExpectedGames / playerStats.stat.games;
+        paceStats[category] = playerStats[nhlApiCategory] *
+          numExpectedGames / playerStats.games;
       }
     });
 
@@ -217,15 +219,17 @@ const nhlApiModule = (function() {
    * @return {Object}
    */
   async function getPlayerAdjustedGoals(playerName, numExpectedGames = 82) {
-    const playerStats = await _getPlayerStats(playerName, 'statsSingleSeason');
-    const playerCareerStats =
-      await _getPlayerStats(playerName, 'careerRegularSeason');
+    const playerStats = await _getPlayerStats(playerName,
+        'statsSingleSeason,careerRegularSeason');
 
-    const adjustedGoals = playerStats.stat['goals'] *
-      playerCareerStats.stat['shotPct'] / playerStats.stat['shotPct'];
-    const projAdjustedGoals = playerStats.stat['shots'] *
-      numExpectedGames / playerStats.stat.games *
-      playerCareerStats.stat['shotPct'] / 100;
+    const playerCurrentSeasonStats = playerStats.stats[0].splits[0].stat;
+    const playerCareerSeasonStats = playerStats.stats[1].splits[0].stat;
+
+    const adjustedGoals = playerCurrentSeasonStats['goals'] *
+      playerCareerSeasonStats['shotPct'] / playerCurrentSeasonStats['shotPct'];
+    const projAdjustedGoals = playerCurrentSeasonStats['shots'] *
+      numExpectedGames / playerCurrentSeasonStats.games *
+      playerCareerSeasonStats['shotPct'] / 100;
 
     return {
       adjustedGoals,
