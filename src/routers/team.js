@@ -41,21 +41,33 @@ router.put('/team/addPlayer', jsonParser, async (req, res) => {
     const newPlayerId = mongoose.Types.ObjectId(req.body.playerId);
 
     const team = await Team.findOneAndUpdate(
-      { _id: teamId },
-      {$push: { Players: newPlayerId }},
-      {useFindAndModify: false, new: true}
-    )
-
-    const teamName = team.Name
+      {
+        _id: teamId
+      },
+      {
+        $push: {
+          Players: newPlayerId
+        }
+      },
+      {
+        useFindAndModify: false
+      }
+    );
 
     const player = await Player.findOneAndUpdate(
-      {_id: newPlayerId},
-      {Team: teamName},
-      {useFindAndModify: false}
-    )
+      {
+        _id: newPlayerId
+      },
+      {
+        Team: teamId
+      },
+      {
+        useFindAndModify: false
+      }
+    );
 
     if(!team || !player) {
-      throw new Error()
+      throw new Error();
     }
 
     res.send(team);
