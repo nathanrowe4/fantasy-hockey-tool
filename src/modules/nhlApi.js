@@ -173,6 +173,8 @@ const nhlApiModule = (function() {
   async function getPlayerSeasonStats(playerName) {
     const playerStats = await _getPlayerStats(playerName, 'statsSingleSeason');
 
+    const filteredPlayerStats = playerStats[0].splits[0].stat;
+
     const categories = categoriesModule.getCategories();
 
     const seasonStats = {};
@@ -180,7 +182,7 @@ const nhlApiModule = (function() {
     categories.forEach(function(category) {
       if (_supportedCategories.includes(category)) {
         const nhlApiCategory = _categoriesMap[category];
-        seasonStats[category] = playerStats.stat[nhlApiCategory];
+        seasonStats[category] = filteredPlayerStats[nhlApiCategory];
       }
     });
 
@@ -196,16 +198,17 @@ const nhlApiModule = (function() {
   async function getPlayerStatsPace(playerName, numExpectedGames = 82) {
     const categories = categoriesModule.getCategories();
 
-    const playerStats = await _getPlayerStats(playerName,
-        'statsSingleSeason').splits[0].stat;
+    const playerStats = await _getPlayerStats(playerName, 'statsSingleSeason')
+
+    const filteredPlayerStats = playerStats[0].splits[0].stat;
 
     const paceStats = {};
 
     categories.forEach(function(category) {
       if (_supportedCategories.includes(category)) {
         const nhlApiCategory = _categoriesMap[category];
-        paceStats[category] = playerStats[nhlApiCategory] *
-          numExpectedGames / playerStats.games;
+        paceStats[category] = filteredPlayerStats[nhlApiCategory] *
+          numExpectedGames / filteredPlayerStats.games;
       }
     });
 
@@ -222,8 +225,8 @@ const nhlApiModule = (function() {
     const playerStats = await _getPlayerStats(playerName,
         'statsSingleSeason,careerRegularSeason');
 
-    const playerCurrentSeasonStats = playerStats.stats[0].splits[0].stat;
-    const playerCareerSeasonStats = playerStats.stats[1].splits[0].stat;
+    const playerCurrentSeasonStats = playerStats[0].splits[0].stat;
+    const playerCareerSeasonStats = playerStats[1].splits[0].stat;
 
     const adjustedGoals = playerCurrentSeasonStats['goals'] *
       playerCareerSeasonStats['shotPct'] / playerCurrentSeasonStats['shotPct'];
@@ -245,7 +248,10 @@ const nhlApiModule = (function() {
   async function getBreakoutEligibility(playerName) {
     const careerPlayerStats =
       await _getPlayerStats(playerName, 'careerRegularSeason');
-    const careerGamesPlayed = careerPlayerStats.stat['games'];
+
+    const filteredCareerPlayerStats = careerPlayerStats[0].splits[0].stat;
+
+    const careerGamesPlayed = filteredCareerPlayerStats['games'];
 
     const breakoutEligibility = {};
 
