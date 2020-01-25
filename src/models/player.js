@@ -1,6 +1,23 @@
 const mongoose = require('mongoose');
 const mongoosastic = require('mongoosastic');
 const categoriesModule = require('../modules/categories');
+const elasticsearch = require('elasticsearch');
+
+var client = new elasticsearch.Client({
+    host: 'fht-search:9200',
+    log: 'trace'
+});
+
+client.ping({
+  // ping usually has a 3000ms timeout
+  requestTimeout: 1000
+}, function (error) {
+  if (error) {
+    console.trace('elasticsearch cluster is down!');
+  } else {
+    console.log('All is well');
+  }
+});
 
 /**
  * Helper function to add categories to player model
@@ -34,11 +51,11 @@ const playerSchema = new mongoose.Schema(playerObj, {
   collection: 'dobber',
 });
 
-playerSchema.plugin(mongoosastic, {
+/*playerSchema.plugin(mongoosastic, {
   host: 'fht-search',
   port: 9200,
   curlDebug: true,
-});
+});*/
 
 playerSchema.statics.getStats = (player) => {
   const playerStats = {};
@@ -85,7 +102,7 @@ playerSchema.statics.getDifference = (players) => {
 };
 
 const Player = mongoose.model('Player', playerSchema);
-const stream = Player.synchronize();
+/*const stream = Player.synchronize();
 let count = 0;
 
 stream.on('data', function(err, doc) {
@@ -96,6 +113,6 @@ stream.on('close', function() {
 });
 stream.on('error', function(err) {
   console.log(err);
-});
+});*/
 
 module.exports = Player;
